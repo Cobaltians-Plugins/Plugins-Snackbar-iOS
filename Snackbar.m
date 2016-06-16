@@ -80,7 +80,7 @@ static Snackbar * currentSnackbar = nil;
                 // Setup action button
                 _action = [UIButton buttonWithType: UIButtonTypeSystem];
                 _action.translatesAutoresizingMaskIntoConstraints = NO;
-                _action.titleLabel.font = [UIFont systemFontOfSize: 14.0 weight: UIFontWeightBold];
+                _action.titleLabel.font = [UIFont boldSystemFontOfSize: 14.0];
                 [_action setTitle: action forState: UIControlStateNormal];
                 UIColor * color = [Cobalt colorFromHexString: actionColor];
                 if (color == nil) {
@@ -133,12 +133,15 @@ static Snackbar * currentSnackbar = nil;
 
 - (void) layoutSubviews
 {
+    [super layoutSubviews];
+
     UIDeviceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
 
     if (_lastOrientation == UIDeviceOrientationUnknown) {
-        _lastOrientation= orientation;
+        _lastOrientation = orientation;
     }
     else if (_lastOrientation != orientation) {
+        _lastOrientation = orientation;
         [self dismissWithAnimation: YES];
     }
 }
