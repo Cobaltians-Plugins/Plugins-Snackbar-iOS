@@ -3,7 +3,7 @@
 static float const ShortDuration = 1.5;
 static float const LongDuration = 2.75;
 
-static int const MaxHeight = 38;
+static int const MaxHeight = 48;
 static int const MaxWidth = 400;
 static int const Margin = 5;
 static float const TransitionDuration = 0.2;
@@ -35,20 +35,23 @@ static Snackbar * currentSnackbar = nil;
 
 + (instancetype) showWithText: (NSString *) text
                   andDuration: (int) duration
-                    andAction: (NSDictionary *) action
+                    andAction: (NSString *) action
+               andActionColor: (NSString *) actionColor
             andViewController: (CobaltViewController *) viewController
                   andCallback: (NSString *) callback
 {
     return [[self alloc] initWithText: text
                           andDuration: duration
                             andAction: action
+                       andActionColor: actionColor
                     andViewController: viewController
                           andCallback: callback];
 }
 
 - (instancetype) initWithText: (NSString *) text
                   andDuration: (int) duration
-                    andAction: (NSDictionary *) action
+                    andAction: (NSString *) action
+               andActionColor: (NSString *) actionColor
             andViewController: (CobaltViewController *) viewController
                   andCallback: (NSString *) callback
 {
@@ -70,19 +73,20 @@ static Snackbar * currentSnackbar = nil;
         _viewController = viewController;
         _callback = callback;
 
-        if (action != nil) {
-            NSString * actionText = [action objectForKey: @"text"];
-            NSString * actionColorString = [action objectForKey: @"color"];
-
-            _hasActionButton = actionText != nil;
+        if (action != nil && [action length] > 0) {
+            _hasActionButton = action != nil;
 
             if (_hasActionButton) {
                 // Setup action button
                 _action = [UIButton buttonWithType: UIButtonTypeSystem];
                 _action.translatesAutoresizingMaskIntoConstraints = NO;
                 _action.titleLabel.font = [UIFont systemFontOfSize: 14.0 weight: UIFontWeightBold];
-                [_action setTitle: actionText forState: UIControlStateNormal];
-                [_action setTitleColor: [self colorWithHexString: actionColorString andDefaultColor: [UIColor whiteColor]] forState: UIControlStateNormal];
+                [_action setTitle: action forState: UIControlStateNormal];
+                UIColor * color = [Cobalt colorFromHexString: actionColor];
+                if (color == nil) {
+                    color = [UIColor whiteColor];
+                }
+                [_action setTitleColor: color forState: UIControlStateNormal];
                 [_action sizeToFit];
                 [_action addTarget: self action: @selector(executeAction:) forControlEvents: UIControlEventTouchUpInside];
                 [_action setContentCompressionResistancePriority: UILayoutPriorityRequired forAxis: UILayoutConstraintAxisHorizontal];
@@ -101,18 +105,24 @@ static Snackbar * currentSnackbar = nil;
 
         // Calculate duration
         _infiniteTimer = NO;
-        if (duration == 0) { _duration = LongDuration; }
-        else if (duration == -1) { _duration = ShortDuration; }
+        if (duration == 0) {
+            _duration = LongDuration;
+        }
+        else if (duration == -1) {
+            _duration = ShortDuration;
+        }
         else if (duration <= -2) {
             if (!_hasActionButton) {
                 NSLog(@"Snackbar Plugin: Snackbars with INFINITE duration must have an action, using LONG instead");
-                _duration = ShortDuration;
+                _duration = LongDuration;
             }
             else {
                 _infiniteTimer = YES;
             }
         }
-        else { _duration = duration / 1000.0; }
+        else {
+            _duration = duration / 1000.0;
+        }
         _duration += TransitionDuration;
 
         [self show];
@@ -324,49 +334,6 @@ static Snackbar * currentSnackbar = nil;
                                                           constant: 0.0]];
 
     return constraints;
-}
-
-- (UIColor *) colorWithHexString: (NSString *) hexString
-                 andDefaultColor: (UIColor *) defaultColor
-{
-    if (hexString == nil) {
-        return defaultColor;
-    }
-
-    NSString * colorString = [[hexString stringByReplacingOccurrencesOfString: @"#" withString: @""] uppercaseString];
-    CGFloat alpha, red, blue, green;
-
-    switch ([colorString length]) {
-        case 6: // #RRGGBB
-            alpha = 1.0f;
-            red   = [self colorComponentFrom: colorString start: 0 length: 2];
-            green = [self colorComponentFrom: colorString start: 2 length: 2];
-            blue  = [self colorComponentFrom: colorString start: 4 length: 2];
-            break;
-        case 8: // #AARRGGBB
-            alpha = [self colorComponentFrom: colorString start: 0 length: 2];
-            red   = [self colorComponentFrom: colorString start: 2 length: 2];
-            green = [self colorComponentFrom: colorString start: 4 length: 2];
-            blue  = [self colorComponentFrom: colorString start: 6 length: 2];
-            break;
-        default:
-            return defaultColor;
-    }
-
-    return [UIColor colorWithRed: red green: green blue: blue alpha: alpha];
-}
-
-- (CGFloat) colorComponentFrom: (NSString *) string
-                         start: (NSUInteger) start
-                        length: (NSUInteger) length
-{
-    NSString *substring = [string substringWithRange: NSMakeRange(start, length)];
-    NSString *fullHex = length == 2 ? substring : [NSString stringWithFormat: @"%@%@", substring, substring];
-
-    unsigned hexComponent;
-    [[NSScanner scannerWithString: fullHex] scanHexInt: &hexComponent];
-
-    return hexComponent / 255.0;
 }
 
 @end

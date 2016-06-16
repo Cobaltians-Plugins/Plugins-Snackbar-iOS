@@ -37,7 +37,8 @@
             duration = [durationOption intValue];
         }
 
-        NSDictionary * action = [options objectForKey: @"action"];
+        NSString * action = [options objectForKey: @"button"];
+        NSString * actionColor = [options objectForKey: @"buttonColor"];
 
         NSString * callback = [data objectForKey: kJSCallback];
 
@@ -48,6 +49,7 @@
         [Snackbar showWithText: text
                    andDuration: duration
                      andAction: action
+                andActionColor: actionColor
              andViewController: viewController
                    andCallback: callback];
     }
