@@ -3,7 +3,4 @@
 
 @interface CobaltSnackbarPlugin: CobaltAbstractPlugin
 
-- (instancetype) init;
-- (void) onAction: (NSDictionary *) userData;
-
 @end

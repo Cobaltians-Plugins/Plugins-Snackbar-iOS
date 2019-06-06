@@ -1,4 +1,5 @@
 #import "Snackbar.h"
+#import <Cobalt/PubSub.h>
 
 static float const ShortDuration = 1.5;
 static float const LongDuration = 2.75;
@@ -242,10 +243,8 @@ static Snackbar * currentSnackbar = nil;
 {
     [self dismissWithAnimation: YES];
 
-    if (_viewController != nil) {
-        [_viewController sendCallback: _callback
-                             withData: nil];
-    }
+    [[PubSub sharedInstance] publishMessage:nil
+                                  toChannel:_callback];
 }
 
 - (NSArray *) verticalShownConstraints
